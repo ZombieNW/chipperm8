@@ -66,6 +66,27 @@ public:
         initInstructions();
     }
 
+    void Chip8::Cycle() {
+        // fetch
+        opcode = memory[pc] << 8u | memory[pc + 1];
+
+        // increment pc before execution
+        pc += 2;
+
+        // decode & execute
+        ((*this).*(table[(opcode & 0xF000u) >> 12u]))();
+
+        // decrement delay timer
+        if (delayTimer > 0) {
+            --delayTimer;
+        }
+
+        // decrement sound timer
+        if (soundTimer > 0) {
+            --soundTimer;
+        }
+    }
+
     // load rom into emulator memory
     void Chip8::loadROM(const char* filename) {
         // open stream as binary
