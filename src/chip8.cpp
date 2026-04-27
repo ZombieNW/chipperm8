@@ -43,8 +43,11 @@ class Chip8
     std::default_random_engine randGen;
 	std::uniform_int_distribution<uint8_t> randByte;
 
-    // initialization
-    void Chip8::initialize() {
+    // initialize
+    Chip8() {
+        // seed random
+        srand(time(NULL));
+
         // program counter starts at 0x200
         pc = START_ADDRESS;
 
@@ -81,6 +84,8 @@ class Chip8
         delete[] buffer;
     }
 
-    // random number generator sets randGen to number randByte to byte
-    Chip8() : randGen(std::chrono::system_clock::now().time_since_epoch().count()), randByte(0, 255) {}
+    // get random byte
+    uint8_t getRandomByte() {
+        return static_cast<uint8_t>(rand() % 256);
+    }
 };
