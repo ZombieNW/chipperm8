@@ -84,7 +84,7 @@ void Chip8::loadROM(const char* filename) {
 }
 
 // get random byte
-uint8_t getRandomByte() {
+uint8_t Chip8::getRandomByte() {
     return static_cast<uint8_t>(rand() % 256);
 }
 
