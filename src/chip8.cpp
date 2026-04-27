@@ -35,7 +35,7 @@ Chip8::Chip8() {
     initInstructions();
 }
 
-void Chip8::Cycle() {
+void Chip8::cycle() {
     // fetch
     opcode = memory[pc] << 8u | memory[pc + 1];
 

@@ -19,7 +19,7 @@ class Chip8
 {
 public:
     Chip8();
-    void Cycle();
+    void cycle();
     void loadROM(const char* filename);
 
     uint8_t registers[16]{}; // V
