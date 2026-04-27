@@ -3,7 +3,7 @@
 Platform::Platform(char const* title, int windowWidth, int windowHeight, int textureWidth, int textureHeight) {
     SDL_Init(SDL_INIT_VIDEO);
 
-    window = SDL_CreateWindow(title, 0, 0, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
