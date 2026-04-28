@@ -28,8 +28,12 @@ int main(int argc, char** argv) {
 
         // check if ui asked to reload
         if (platform.romNeedsReload) {
+            chip8.reset(); 
+
             if (chip8.loadROM(platform.currentRomPath.c_str())) {
                 platform.romLoaded = true;
+            } else {
+                platform.romLoaded = false;
             }
             platform.romNeedsReload = false;
         }

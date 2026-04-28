@@ -21,6 +21,7 @@ public:
     Chip8();
     void cycle();
     bool loadROM(const char* filename);
+    void reset();
 
     uint8_t registers[16]{}; // V
     uint8_t memory[4096]{}; // memory

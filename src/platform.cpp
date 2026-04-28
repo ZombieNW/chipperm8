@@ -127,6 +127,10 @@ void Platform::RenderUI() {
                 isPaused = !isPaused;
             }
 
+            if (ImGui::MenuItem("Reset", "R", isPaused)) {
+                this->romNeedsReload = true;
+            }
+
             if (ImGui::BeginMenu("Cycle Delay (ms)")) {
                 for (int i : {0, 1, 2, 5, 10, 16, 33}) {
                     std::string label = std::to_string(i) + " ms";
@@ -142,12 +146,7 @@ void Platform::RenderUI() {
 
         ImGui::Separator();
         if (romLoaded) {
-            
             ImGui::TextDisabled("Running: %s", currentRomPath.c_str());
-            ImGui::SameLine();
-            if (ImGui::Button("Reload")) {
-                this->romNeedsReload = true;
-            }
         } else {
             ImGui::TextColored(ImVec4(1, 0, 0, 1), "No ROM Loaded");
         }
@@ -173,6 +172,9 @@ bool Platform::ProcessInput(uint8_t* keys) {
             // pause
             if (isDown && event.key.keysym.sym == SDLK_p) {
                 this->isPaused = !this->isPaused;
+            }
+            if (isDown && event.key.keysym.sym == SDLK_r) {
+                this->romNeedsReload = true;
             }
 
 
