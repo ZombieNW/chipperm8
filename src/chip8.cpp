@@ -242,50 +242,24 @@ void Chip8::op8XY3() {
 
 // 8XY4 - ADD Vx, Vy - set Vx to Vx + Vy, set VF to carry
 void Chip8::op8XY4() {
-    // get Vx
     uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // get Vy
     uint8_t Vy = (opcode & 0x00F0) >> 4u;
 
-    // calculate sum
-    uint16_t sum = registers[Vx] + registers[Vy];
-
-    // if there is a carry
-    if (sum > 255U) {
-        // set carry
-        registers[0xF] = 1;
-    } else {
-        // clear carry
-        registers[0xF] = 0;
-    }
-
-    // set Vx to Vx + Vy
-    registers[Vx] = sum & 0xFFu;
+    // set Vx to Vx + Vy check carry
+    uint8_t flag = ((registers[Vx] + registers[Vy]) > 255U) ? 1 : 0;
+    registers[Vx] = (registers[Vx] + registers[Vy]) & 0xFFu;
+    registers[0xF] = flag;
 }
 
 // 8XY5 - SUB Vx, Vy - set Vx to Vx - Vy, set VF to NOT borrow
 void Chip8::op8XY5() {
-    // get Vx
     uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // get Vy
     uint8_t Vy = (opcode & 0x00F0) >> 4u;
 
-    // calculate difference
-    uint16_t difference = registers[Vx] - registers[Vy];
-
-    // if there is a borrow
-    if (registers[Vx] > registers[Vy]) {
-        // set borrow
-        registers[0xF] = 1;
-    } else {
-        // clear borrow
-        registers[0xF] = 0;
-    }
-
-    // set Vx to Vx - Vy
-    registers[Vx] = difference & 0xFFu;
+    // set Vx to Vx - Vy check borrow
+    uint8_t flag = (registers[Vx] >= registers[Vy]) ? 1 : 0;
+    registers[Vx] -= registers[Vy];
+    registers[0xF] = flag;
 }
 
 // 8XY6 - SHR Vx - set Vx to Vx SHR 1
@@ -302,35 +276,21 @@ void Chip8::op8XY6() {
 
 // 8XY7 - SUBN Vx, Vy - set Vx to Vy - Vx, set VF to NOT borrow
 void Chip8::op8XY7() {
-    // get Vx
     uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // get Vy
     uint8_t Vy = (opcode & 0x00F0) >> 4u;
 
-    // calculate difference
-    uint16_t difference = registers[Vy] - registers[Vx];
-
-    // if there is a borrow
-    if (registers[Vy] > registers[Vx]) {
-        // set borrow
-        registers[0xF] = 1;
-    } else {
-        // clear borrow
-        registers[0xF] = 0;
-    }
-
-    // set Vx to Vy - Vx
-    registers[Vx] = difference & 0xFFu;
+    // set Vx to Vx - Vy check borrow
+    uint8_t flag = (registers[Vx] >= registers[Vy]) ? 1 : 0;
+    registers[Vx] -= registers[Vy];
+    registers[0xF] = flag;
 }
 
 // 8XYE - SHL Vx - set Vx to Vx SHL 1
 void Chip8::op8XYE() {
-    // get Vx
     uint8_t Vx = (opcode & 0x0F00) >> 8u;
 
     // save most significant bit in VF
-    registers[0xF] = registers[Vx] & 0x80;
+    registers[0xF] = (registers[Vx] & 0x80u) >> 7u;
 
     // set Vx to Vx SHL 1
     registers[Vx] <<= 1;
@@ -383,42 +343,34 @@ void Chip8::opCXNN() {
 
 // DXYN - DRW Vx, Vy, nibble - display n-byte sprite starting at memory location I at (Vx, Vy), set VF to collision
 void Chip8::opDXYN() {
-    // get Vx
     uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // get Vy
     uint8_t Vy = (opcode & 0x00F0) >> 4u;
-
-    // get height
     uint8_t height = opcode & 0x000Fu;
 
-    // wrap
     uint8_t xPos = registers[Vx] % VIDEO_WIDTH;
     uint8_t yPos = registers[Vy] % VIDEO_HEIGHT;
 
-    // set VF to collision
+    // clear collision
     registers[0xF] = 0; 
 
     for (unsigned int row = 0; row < height; ++row) {
-        // get sprite byte
+        // break if out of bounds
+        if (yPos + row >= VIDEO_HEIGHT) break;
+
         uint8_t spriteByte = memory[index + row];
 
         for (unsigned int col = 0; col < 8; ++col) {
-            // get sprite pixel
-            uint8_t spritePixel = spriteByte & (0x80 >> col);
+            // break it out of bounds
+            if (xPos + col >= VIDEO_WIDTH) break;
 
-            // get screen pixel
+            uint8_t spritePixel = spriteByte & (0x80 >> col);
             uint32_t* screenPixel = &video[(yPos + row) * VIDEO_WIDTH + (xPos + col)];
 
-            // if sprite pixel is also on
+            // collision detection
             if (spritePixel) {
-                // if screen pixel is also on
                 if (*screenPixel == 0xFFFFFFFF) {
-                    // set collision
                     registers[0xF] = 1;
                 }
-
-                // xor screen pixel with sprite pixel
                 *screenPixel ^= 0xFFFFFFFF;
             }
         }
@@ -477,6 +429,9 @@ void Chip8::opFX0A() {
         if (keypad[key]) {
             // set Vx to key value
             registers[Vx] = key;
+
+            // set flag
+            keyPressed = true;
 
             // break out of loop
             break;
