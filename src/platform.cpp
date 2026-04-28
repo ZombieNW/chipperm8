@@ -1,5 +1,6 @@
 #include "platform.hpp"
 #include "chip8.hpp"
+#include "nfd.hpp"
 
 Platform::Platform(char const* title, int windowWidth, int windowHeight) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
@@ -71,7 +72,18 @@ void Platform::Update(void const* buffer, int pitch) {
     ImGui::SetCursorPos(ImVec2(offsetX, offsetY));
 
     // draw sdl canvas as imgui image
-    ImGui::Image((ImTextureID)(intptr_t)texture, ImVec2(w, h));
+    if (!romLoaded) {
+        const char* text = "No ROM loaded. Go to File > Open ROM to start.";
+        ImVec2 textSize = ImGui::CalcTextSize(text);
+
+        float textX = offsetX + (w - textSize.x) * 0.5f;
+        float textY = offsetY + (h - textSize.y) * 0.5f;
+
+        ImGui::SetCursorPos(ImVec2(textX, textY));
+        ImGui::Text("%s", text);
+    } else {
+        ImGui::Image((ImTextureID)(intptr_t)texture, ImVec2(w, h));
+    }
     ImGui::End();
     ImGui::PopStyleVar();
 
@@ -88,16 +100,19 @@ void Platform::Update(void const* buffer, int pitch) {
 void Platform::RenderUI() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            // load rom via input for right now
-            static char pathBuffer[256] = "";
+            if (ImGui::MenuItem("Open ROM...", "Ctrl+O")) {
+                NFD::UniquePath outPath;
+                nfdfilteritem_t filterItem[1] = {{"Chip-8 ROM", "ch8,bin"}};
 
-            ImGui::InputText("ROM Path", pathBuffer, IM_ARRAYSIZE(pathBuffer));
-            if (ImGui::Button("Load ROM")) {
-                this->currentRomPath = pathBuffer;
-                this->romNeedsReload = true;
+                nfdresult_t result = NFD::OpenDialog(outPath, filterItem, 1);
+
+                if (result == NFD_OKAY) {
+                    this->currentRomPath = outPath.get();
+                    this->romNeedsReload = true;
+                } else {
+                    std::cerr << "Error: " << NFD::GetError() << std::endl;
+                } 
             }
-
-            ImGui::Separator();
 
             if (ImGui::MenuItem("Quit", "esc")) {
                 SDL_Event quitEvent;
