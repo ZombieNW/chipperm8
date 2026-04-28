@@ -1,13 +1,14 @@
 #include "platform.hpp"
+#include "chip8.hpp"
 
-Platform::Platform(char const* title, int windowWidth, int windowHeight, int textureWidth, int textureHeight) : texWidth(textureWidth), texHeight(textureHeight) {
+Platform::Platform(char const* title, int windowWidth, int windowHeight) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
 
     window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, textureWidth, textureHeight);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, VIDEO_WIDTH, VIDEO_HEIGHT);
 
-    canvasAspect = (float)textureWidth / (float)textureHeight;
+    canvasAspect = (float)VIDEO_WIDTH / (float)VIDEO_HEIGHT;
 
     // setup imgui
     IMGUI_CHECKVERSION();
@@ -39,32 +40,48 @@ void Platform::Update(void const* buffer, int pitch) {
     // update emulator texture
     SDL_UpdateTexture(texture, nullptr, buffer, pitch);
 
-    // render sdl canvas
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-
-    // canvas logic
+    // setup background window
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos);
     ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize);
-    ImGui::Begin("ROM", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
+
+    // remove padding
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
+    ImGui::Begin("EMU", nullptr, 
+    ImGuiWindowFlags_NoDecoration | 
+    ImGuiWindowFlags_NoMove | 
+    ImGuiWindowFlags_NoBringToFrontOnFocus | 
+    ImGuiWindowFlags_NoInputs);
 
     ImVec2 winSize = ImGui::GetContentRegionAvail();
     float w = winSize.x;
     float h = winSize.y;
 
-    if (w / h > canvasAspect) w = h * canvasAspect;
-    else h = w / canvasAspect;
+    // keep aspect
+    if (w / h > canvasAspect) {
+        w = h * canvasAspect;
+    } else {
+        h = w / canvasAspect;
+    }
 
-    ImGui::SetCursorPosX((winSize.x - w) * 0.5f);
-    ImGui::SetCursorPosY((winSize.y - h) * 0.5f);
+    // center offset
+    float offsetX = (winSize.x - w) * 0.5f;
+    float offsetY = (winSize.y - h) * 0.5f;
+
+    ImGui::SetCursorPos(ImVec2(offsetX, offsetY));
 
     // draw sdl canvas as imgui image
     ImGui::Image((ImTextureID)(intptr_t)texture, ImVec2(w, h));
     ImGui::End();
+    ImGui::PopStyleVar();
 
     // render
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
+    
     SDL_RenderPresent(renderer);
 }
 
@@ -72,7 +89,33 @@ void Platform::RenderUI() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Open ROM...")) {
-                // TODO
+                // todo file load logic
+            }
+            else if (ImGui::MenuItem("Quit", "Ctrl+Q")) {
+                // todo quit logic
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Emulation")) {
+            if (ImGui::BeginMenu("Speed")) {
+                for(int i = 1; i < 11; i++) {
+                    if (ImGui::MenuItem(std::to_string(i).c_str())) {
+                        // set emulation speed
+                    }
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::MenuItem("Controls")) {
+                // todo controls
+            }
+            if (ImGui::MenuItem("Pause")) {
+                // todo controls
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Help")) {
+            if (ImGui::MenuItem("About")) {
+                // todo about
             }
             ImGui::EndMenu();
         }
@@ -90,12 +133,16 @@ bool Platform::ProcessInput(uint8_t* keys) {
         if (event.type == SDL_QUIT) quit = true;
         
         if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+            bool isDown = (event.type == SDL_KEYDOWN);
+            
+            // always quit on escape
+            if (isDown && event.key.keysym.sym == SDLK_ESCAPE) quit = true;
+
             // only send keys to emulator if imgui isn't using them
-            if (!ImGui::GetIO().WantCaptureKeyboard) {
-                if (event.key.keysym.sym == SDLK_ESCAPE) quit = true;
+            if (!ImGui::GetIO().WantTextInput) {
                 int chip8Key = MapKey(event.key.keysym.sym);
                 if (chip8Key != -1) {
-                    keys[chip8Key] = (event.type == SDL_KEYDOWN);
+                    keys[chip8Key] = isDown ? 1 : 0;
                 }
             }
         }

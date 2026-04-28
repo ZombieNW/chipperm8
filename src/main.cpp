@@ -5,16 +5,15 @@
 #include "chip8.hpp"
 
 int main(int argc, char** argv) {
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " <Scale> <Delay> <ROM>\n";
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <Rom> <Delay>\n";
 		std::exit(EXIT_FAILURE);
     }
 
-    int videoScale = std::stoi(argv[1]);
 	int cycleDelay = std::stoi(argv[2]);
-	char const* romFilename = argv[3];
+	char const* romFilename = argv[1];
 
-    Platform platform("CHIP-8", 640 * videoScale, 320 * videoScale, 64 * videoScale, 32 * videoScale);
+    Platform platform("Chipper-M8", 1280, 720);
     Chip8 chip8;
 
     chip8.loadROM(romFilename);
