@@ -21,4 +21,4 @@ Chip-8 is a "language"/"fantasy console" from the 1970's. It uses little memory 
 [Native File Dialog](https://github.com/btzy/nativefiledialog-extended) for file dialog handling.
 
 ## Reference/Credit
-The two biggest resources for this project were this [Wikipedia Article](https://en.wikipedia.org/wiki/CHIP-8) and this [Blog Post](https://austinmorlan.com/posts/chip8_emulator/) by Austin Morlan. Though I did do quite a few things "my own way."
+The two biggest resources for this project were this [Wikipedia Article](https://en.wikipedia.org/wiki/CHIP-8) and this [Blog Post](https://austinmorlan.com/posts/chip8_emulator/) by Austin Morlan. Though I tried to do some things "my own way."
