@@ -5,33 +5,43 @@
 #include "chip8.hpp"
 
 int main(int argc, char** argv) {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <Rom> <Delay>\n";
-		std::exit(EXIT_FAILURE);
-    }
-
-	int cycleDelay = std::stoi(argv[2]);
-	char const* romFilename = argv[1];
-
     Platform platform("Chipper-M8", 1280, 720);
     Chip8 chip8;
 
-    chip8.loadROM(romFilename);
+    // cli args
+    if (argc >= 2) {
+        platform.currentRomPath = argv[1];
+        if (chip8.loadROM(platform.currentRomPath.c_str())) {
+            platform.romLoaded = true;
+        }
+    }
+    if (argc >= 3) {
+        platform.cycleDelay = std::stoi(argv[2]);
+    }
 
     int videoPitch = sizeof(chip8.video[0]) * VIDEO_WIDTH;
-
     auto lastCycleTime = std::chrono::high_resolution_clock::now();
     bool quit = false;
 
     while (!quit) {
         quit = platform.ProcessInput(chip8.keypad);
 
+        // check if ui asked to reload
+        if (platform.romNeedsReload) {
+            if (chip8.loadROM(platform.currentRomPath.c_str())) {
+                platform.romLoaded = true;
+            }
+            platform.romNeedsReload = false;
+        }
+
         auto currentTime = std::chrono::high_resolution_clock::now();
         float dt = std::chrono::duration<float, std::milli>(currentTime - lastCycleTime).count();
 
-        if (dt > cycleDelay) {
-            lastCycleTime = currentTime;
-            chip8.cycle();
+        if (platform.romLoaded && !platform.isPaused) {
+            if (dt > platform.cycleDelay) {
+                lastCycleTime = currentTime;
+                chip8.cycle();
+            }
         }
 
         platform.Update(chip8.video, videoPitch);

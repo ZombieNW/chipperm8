@@ -88,37 +88,55 @@ void Platform::Update(void const* buffer, int pitch) {
 void Platform::RenderUI() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Open ROM...")) {
-                // todo file load logic
+            // load rom via input for right now
+            static char pathBuffer[256] = "";
+
+            ImGui::InputText("ROM Path", pathBuffer, IM_ARRAYSIZE(pathBuffer));
+            if (ImGui::Button("Load ROM")) {
+                this->currentRomPath = pathBuffer;
+                this->romNeedsReload = true;
             }
-            else if (ImGui::MenuItem("Quit", "Ctrl+Q")) {
-                // todo quit logic
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Quit", "esc")) {
+                SDL_Event quitEvent;
+                quitEvent.type = SDL_QUIT;
+                SDL_PushEvent(&quitEvent);
             }
             ImGui::EndMenu();
         }
+
         if (ImGui::BeginMenu("Emulation")) {
-            if (ImGui::BeginMenu("Speed")) {
-                for(int i = 1; i < 11; i++) {
-                    if (ImGui::MenuItem(std::to_string(i).c_str())) {
-                        // set emulation speed
+            if (ImGui::MenuItem("Pause", "P", isPaused)) {
+                isPaused = !isPaused;
+            }
+
+            if (ImGui::BeginMenu("Cycle Delay (ms)")) {
+                for (int i : {0, 1, 2, 5, 10, 16, 33}) {
+                    std::string label = std::to_string(i) + " ms";
+                    if (ImGui::MenuItem(label.c_str(), nullptr, cycleDelay == i)) {
+                        cycleDelay = i;
                     }
                 }
                 ImGui::EndMenu();
             }
-            if (ImGui::MenuItem("Controls")) {
-                // todo controls
-            }
-            if (ImGui::MenuItem("Pause")) {
-                // todo controls
-            }
+            
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Help")) {
-            if (ImGui::MenuItem("About")) {
-                // todo about
+
+        ImGui::Separator();
+        if (romLoaded) {
+            
+            ImGui::TextDisabled("Running: %s", currentRomPath.c_str());
+            ImGui::SameLine();
+            if (ImGui::Button("Reload")) {
+                this->romNeedsReload = true;
             }
-            ImGui::EndMenu();
+        } else {
+            ImGui::TextColored(ImVec4(1, 0, 0, 1), "No ROM Loaded");
         }
+
         ImGui::EndMainMenuBar();
     }
 }
@@ -137,6 +155,11 @@ bool Platform::ProcessInput(uint8_t* keys) {
             
             // always quit on escape
             if (isDown && event.key.keysym.sym == SDLK_ESCAPE) quit = true;
+            // pause
+            if (isDown && event.key.keysym.sym == SDLK_p) {
+                this->isPaused = !this->isPaused;
+            }
+
 
             // only send keys to emulator if imgui isn't using them
             if (!ImGui::GetIO().WantTextInput) {

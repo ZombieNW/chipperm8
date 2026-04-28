@@ -20,7 +20,7 @@ class Chip8
 public:
     Chip8();
     void cycle();
-    void loadROM(const char* filename);
+    bool loadROM(const char* filename);
 
     uint8_t registers[16]{}; // V
     uint8_t memory[4096]{}; // memory

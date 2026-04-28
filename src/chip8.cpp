@@ -57,11 +57,11 @@ void Chip8::cycle() {
 }
 
 // load rom into emulator memory
-void Chip8::loadROM(const char* filename) {
+bool Chip8::loadROM(const char* filename) {
     // read stream as binary
     std::ifstream file(filename, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
-        throw std::runtime_error("Failed to open ROM file");
+        return false;
     }
 
     // get file size
@@ -70,11 +70,14 @@ void Chip8::loadROM(const char* filename) {
 
     // check size
     if (size > (4096 - START_ADDRESS)) {
-        throw std::runtime_error("ROM too large");
+        return false;
     }
 
     // read file into memory
     file.read(reinterpret_cast<char*>(&memory[START_ADDRESS]), size);
+
+    file.close();
+    return true;
 }
 
 // ====================

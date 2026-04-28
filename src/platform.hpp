@@ -11,12 +11,15 @@ class Platform
 {
 public:
     Platform(char const* title, int windowWidth, int windowHeight);
-
     ~Platform();
-
     void Update(void const* buffer, int pitch);
-
     bool ProcessInput(uint8_t* keys);
+
+    bool isPaused = false;
+    int cycleDelay = 2; // default delay
+    bool romLoaded = false;
+    std::string currentRomPath = "";
+    bool romNeedsReload = false;
 
 private:
     int MapKey(SDL_Keycode sym);
