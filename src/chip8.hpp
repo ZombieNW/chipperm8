@@ -93,8 +93,8 @@ private:
     void opNULL();
 
     // opcode helpers
-    uint16_t getNNN();
-    uint8_t getKK();
-    uint8_t getVy();
-    uint8_t getVx();
+    uint8_t getVx() const { return (opcode & 0x0F00) >> 8; }
+    uint8_t getVy() const { return (opcode & 0x00F0) >> 4; }
+    uint8_t getKK() const { return opcode & 0x00FF; }
+    uint16_t getNNN() const { return opcode & 0x0FFF; }
 };

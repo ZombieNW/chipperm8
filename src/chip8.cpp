@@ -58,29 +58,23 @@ void Chip8::cycle() {
 
 // load rom into emulator memory
 void Chip8::loadROM(const char* filename) {
-    // open stream as binary
-    std::ifstream file = std::ifstream(filename, std::ios::binary | std::ios::ate);
-    
+    // read stream as binary
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
         throw std::runtime_error("Failed to open ROM file");
     }
 
     // get file size
-    std::streampos size = file.tellg();
-
-    // create buffer and read file into it
-    char* buffer = new char[size];
+    std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
-    file.read(buffer, size);
-    file.close();
 
-    // load rom into buffer (after start address)
-    for (int i = 0; i < size; ++i) {
-        memory[START_ADDRESS + i] = buffer[i];
+    // check size
+    if (size > (4096 - START_ADDRESS)) {
+        throw std::runtime_error("ROM too large");
     }
 
-    // free buffer
-    delete[] buffer;
+    // read file into memory
+    file.read(reinterpret_cast<char*>(&memory[START_ADDRESS]), size);
 }
 
 // ====================
@@ -518,21 +512,4 @@ void Chip8::TableF() {
 // get random byte
 uint8_t Chip8::getRandomByte() {
     return static_cast<uint8_t>(rand() % 256);
-}
-
-// get parts of opcode
-uint8_t Chip8::getVx() {
-    return (opcode & 0x0F00) >> 8u;
-}
-
-uint8_t Chip8::getVy() {
-    return (opcode & 0x00F0) >> 4u;
-}
-
-uint8_t Chip8::getKK() {
-    return opcode & 0x00FF;
-}
-
-uint16_t Chip8::getNNN() {
-    return opcode & 0x0FFF;
 }
