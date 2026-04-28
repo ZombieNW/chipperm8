@@ -20,7 +20,11 @@ set(SOURCES
     ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer2.cpp
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
+if(WIN32)
+    set(EXE_ICON "resources.rc")
+endif()
+
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${EXE_ICON})
 
 if(MINGW)
     target_link_options(${PROJECT_NAME} PRIVATE 
