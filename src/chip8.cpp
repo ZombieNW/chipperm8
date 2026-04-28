@@ -94,9 +94,7 @@ bool Chip8::loadROM(const char* filename) {
 // 00E0 - CLS - clear the display
 void Chip8::op00E0() {
     // set entire framebuffer to 0
-    for (int i = 0; i < 64 * 32; ++i) {
-        video[i] = 0;
-    }
+    std::fill(std::begin(video), std::end(video), 0);
 }
 
 // 00EE - RET - return from a subroutine
