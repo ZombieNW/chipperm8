@@ -236,7 +236,7 @@ void Chip8::op8XY7() {
     uint8_t Vy = getVy();
 
     uint8_t flag = (registers[Vx] >= registers[Vy]) ? 1 : 0; // check borrow
-    registers[Vx] -= registers[Vy]; // subtract
+    registers[Vx] = registers[Vy] - registers[Vx]; // subtract
     registers[0xF] = flag; // set carry flag
 }
 
