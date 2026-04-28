@@ -141,7 +141,7 @@ void Platform::RenderUI() {
                 isPaused = !isPaused;
             }
 
-            if (ImGui::MenuItem("Reset", "R", isPaused)) {
+            if (ImGui::MenuItem("Reset", "L", isPaused)) {
                 this->romNeedsReload = true;
             }
 
@@ -207,7 +207,7 @@ bool Platform::ProcessInput(uint8_t* keys) {
             if (isDown && event.key.keysym.sym == SDLK_p) {
                 this->isPaused = !this->isPaused;
             }
-            if (isDown && event.key.keysym.sym == SDLK_r) {
+            if (isDown && event.key.keysym.sym == SDLK_l) {
                 this->romNeedsReload = true;
             }
             if ((SDL_GetModState() & KMOD_CTRL) && event.key.keysym.sym == SDLK_o) {
