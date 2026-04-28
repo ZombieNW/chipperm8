@@ -14,6 +14,7 @@ public:
     ~Platform();
     void Update(void const* buffer, int pitch);
     bool ProcessInput(uint8_t* keys);
+    void UpdateSound(uint8_t soundTimer);
 
     bool isPaused = false;
     int cycleDelay = 2; // default delay
@@ -26,8 +27,10 @@ private:
     void RenderUI();
 
     float canvasAspect;
+    uint32_t waveStep = 0;
 
     SDL_Window* window{nullptr};
     SDL_Renderer* renderer{nullptr};
     SDL_Texture* texture{nullptr};
+    SDL_AudioDeviceID audioDevice;
 };

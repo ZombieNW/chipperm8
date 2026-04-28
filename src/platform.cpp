@@ -3,7 +3,7 @@
 #include "nfd.hpp"
 
 Platform::Platform(char const* title, int windowWidth, int windowHeight) {
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO);
 
     window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
@@ -19,6 +19,17 @@ Platform::Platform(char const* title, int windowWidth, int windowHeight) {
 
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer2_Init(renderer);
+
+    // audio
+    SDL_AudioSpec want, have;
+    SDL_zero(want);
+    want.freq = 44100;
+    want.format = AUDIO_S16SYS;
+    want.channels = 1;
+    want.samples = 2048;
+
+    audioDevice = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
+    SDL_PauseAudioDevice(audioDevice, 0);
 }
 
 Platform::~Platform() {
@@ -28,6 +39,9 @@ Platform::~Platform() {
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    if (audioDevice) {
+        SDL_CloseAudioDevice(audioDevice);
+    }
     SDL_Quit();
 }
 
@@ -152,6 +166,26 @@ void Platform::RenderUI() {
         }
 
         ImGui::EndMainMenuBar();
+    }
+}
+
+void Platform::UpdateSound(uint8_t soundTimer) {
+    if (soundTimer > 0) {
+        int samplesToQueue = 44100 / 60; 
+        std::vector<int16_t> samples(samplesToQueue);
+
+        for (int i = 0; i < samplesToQueue; ++i) {
+            // 440Hz square wave
+            samples[i] = ((waveStep++ / (44100 / 440 / 2)) % 2) ? 3000 : -3000;
+        }
+        
+        // only queue if the buffer is getting low to avoid latency
+        if (SDL_GetQueuedAudioSize(audioDevice) < samplesToQueue * sizeof(int16_t) * 2) {
+            SDL_QueueAudio(audioDevice, samples.data(), samples.size() * sizeof(int16_t));
+        }
+    } else {
+        SDL_ClearQueuedAudio(audioDevice);
+        waveStep = 0;
     }
 }
 

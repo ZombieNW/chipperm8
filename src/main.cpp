@@ -45,6 +45,8 @@ int main(int argc, char** argv) {
             if (dt > platform.cycleDelay) {
                 lastCycleTime = currentTime;
                 chip8.cycle();
+
+                platform.UpdateSound(chip8.soundTimer);
             }
         }
 
