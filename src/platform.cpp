@@ -102,7 +102,7 @@ void Platform::RenderUI() {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Open ROM...", "Ctrl+O")) {
                 NFD::UniquePath outPath;
-                nfdfilteritem_t filterItem[1] = {{"Chip-8 ROM", "ch8,bin"}};
+                nfdfilteritem_t filterItem[1] = {{"Chip-8 ROM", "ch8,bin,rom"}};
 
                 nfdresult_t result = NFD::OpenDialog(outPath, filterItem, 1);
 
