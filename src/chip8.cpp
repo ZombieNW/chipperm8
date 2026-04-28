@@ -83,11 +83,6 @@ void Chip8::loadROM(const char* filename) {
     delete[] buffer;
 }
 
-// get random byte
-uint8_t Chip8::getRandomByte() {
-    return static_cast<uint8_t>(rand() % 256);
-}
-
 // ====================
 // Instructions
 // ====================
@@ -109,12 +104,12 @@ void Chip8::op00EE() {
 // 1NNN - JP addr - jump to address NNN
 void Chip8::op1NNN() {
     // set pc to NNN
-    pc = opcode & 0x0FFF; // bitmask to get last 12 bits
+    pc = getNNN();
 }
 
 // 2NNN - CALL addr - call subroutine at NNN
 void Chip8::op2NNN() {
-    uint16_t address = opcode & 0x0FFF;
+    uint16_t address = getNNN();
 
     // push current pc to stack
     stack[sp++] = pc;
@@ -125,13 +120,9 @@ void Chip8::op2NNN() {
 
 // 3XKK - SE Vx, byte - skip next instruction if Vx == KK
 void Chip8::op3XKK() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
+    uint8_t KK = getKK();
 
-    // get KK
-    uint8_t KK = opcode & 0x00FF;
-
-    // check if Vx == KK
     if (registers[Vx] == KK) {
         // skip next instruction
         pc += 2;
@@ -140,13 +131,9 @@ void Chip8::op3XKK() {
 
 // 4XKK - SNE Vx, byte - skip next instruction if Vx != KK
 void Chip8::op4XKK() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
+    uint8_t KK = getKK();
 
-    // get KK
-    uint8_t KK = opcode & 0x00FF;
-
-    // check if Vx != KK
     if (registers[Vx] != KK) {
         // skip next instruction
         pc += 2;
@@ -155,13 +142,9 @@ void Chip8::op4XKK() {
 
 // 5XY0 - SE Vx, Vy - skip next instruction if Vx == Vy
 void Chip8::op5XY0() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
+    uint8_t Vy = getVy();
 
-    // get Vy
-    uint8_t Vy = (opcode & 0x00F0) >> 4u;
-
-    // check if Vx == Vy
     if (registers[Vx] == registers[Vy]) {
         // skip next instruction
         pc += 2;
@@ -170,102 +153,75 @@ void Chip8::op5XY0() {
 
 // 6XKK - LD Vx, byte - set Vx to KK
 void Chip8::op6XKK() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
+    uint8_t KK = getKK();
 
-    // get KK
-    uint8_t KK = opcode & 0x00FF;
-
-    // set Vx to KK
     registers[Vx] = KK;
 }
 
 // 7XKK - ADD Vx, byte - set Vx to Vx + KK
 void Chip8::op7XKK() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
+    uint8_t KK = getKK();
 
-    // get KK
-    uint8_t KK = opcode & 0x00FF;
-
-    // set Vx to Vx + KK
     registers[Vx] += KK;
 }
 
 // 8XY0 - LD Vx, Vy - set Vx to Vy
 void Chip8::op8XY0() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
+    uint8_t Vy = getVy();
 
-    // get Vy
-    uint8_t Vy = (opcode & 0x00F0) >> 4u;
-
-    // set Vx to Vy
     registers[Vx] = registers[Vy];
 }
 
 // 8XY1 - OR Vx, Vy - set Vx to Vx OR Vy
 void Chip8::op8XY1() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
+    uint8_t Vy = getVy();
 
-    // get Vy
-    uint8_t Vy = (opcode & 0x00F0) >> 4u;
-
-    // set Vx to Vx OR Vy
-    registers[Vx] |= registers[Vy];
+    registers[Vx] |= registers[Vy]; // OR
 }
 
 // 8XY2 - AND Vx, Vy - set Vx to Vx AND Vy
 void Chip8::op8XY2() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
+    uint8_t Vy = getVy();
 
-    // get Vy
-    uint8_t Vy = (opcode & 0x00F0) >> 4u;
-
-    // set Vx to Vx AND Vy
-    registers[Vx] &= registers[Vy];
+    registers[Vx] &= registers[Vy]; // AND
 }
 
 // 8XY3 - XOR Vx, Vy - set Vx to Vx XOR Vy
 void Chip8::op8XY3() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
+    uint8_t Vy = getVy();
 
-    // get Vy
-    uint8_t Vy = (opcode & 0x00F0) >> 4u;
-
-    // set Vx to Vx XOR Vy
-    registers[Vx] ^= registers[Vy];
+    registers[Vx] ^= registers[Vy]; // XOR
 }
 
 // 8XY4 - ADD Vx, Vy - set Vx to Vx + Vy, set VF to carry
 void Chip8::op8XY4() {
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-    uint8_t Vy = (opcode & 0x00F0) >> 4u;
+    uint8_t Vx = getVx();
+    uint8_t Vy = getVy();
 
-    // set Vx to Vx + Vy check carry
-    uint8_t flag = ((registers[Vx] + registers[Vy]) > 255U) ? 1 : 0;
-    registers[Vx] = (registers[Vx] + registers[Vy]) & 0xFFu;
-    registers[0xF] = flag;
+    uint8_t flag = ((registers[Vx] + registers[Vy]) > 255U) ? 1 : 0; // check carry
+    registers[Vx] = (registers[Vx] + registers[Vy]) & 0xFFu; // add
+    registers[0xF] = flag; // set carry flag
 }
 
 // 8XY5 - SUB Vx, Vy - set Vx to Vx - Vy, set VF to NOT borrow
 void Chip8::op8XY5() {
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-    uint8_t Vy = (opcode & 0x00F0) >> 4u;
+    uint8_t Vx = getVx();
+    uint8_t Vy = getVy();
 
-    // set Vx to Vx - Vy check borrow
-    uint8_t flag = (registers[Vx] >= registers[Vy]) ? 1 : 0;
-    registers[Vx] -= registers[Vy];
-    registers[0xF] = flag;
+    uint8_t flag = (registers[Vx] >= registers[Vy]) ? 1 : 0; // check borrow
+    registers[Vx] -= registers[Vy]; // subtract
+    registers[0xF] = flag; // set carry flag
 }
 
 // 8XY6 - SHR Vx - set Vx to Vx SHR 1
 void Chip8::op8XY6() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
 
     // save least significant bit in VF
     registers[0xF] = registers[Vx] & 0x01;
@@ -276,18 +232,17 @@ void Chip8::op8XY6() {
 
 // 8XY7 - SUBN Vx, Vy - set Vx to Vy - Vx, set VF to NOT borrow
 void Chip8::op8XY7() {
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-    uint8_t Vy = (opcode & 0x00F0) >> 4u;
+    uint8_t Vx = getVx();
+    uint8_t Vy = getVy();
 
-    // set Vx to Vx - Vy check borrow
-    uint8_t flag = (registers[Vx] >= registers[Vy]) ? 1 : 0;
-    registers[Vx] -= registers[Vy];
-    registers[0xF] = flag;
+    uint8_t flag = (registers[Vx] >= registers[Vy]) ? 1 : 0; // check borrow
+    registers[Vx] -= registers[Vy]; // subtract
+    registers[0xF] = flag; // set carry flag
 }
 
 // 8XYE - SHL Vx - set Vx to Vx SHL 1
 void Chip8::op8XYE() {
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
 
     // save most significant bit in VF
     registers[0xF] = (registers[Vx] & 0x80u) >> 7u;
@@ -298,13 +253,9 @@ void Chip8::op8XYE() {
 
 // 9XY0 - SNE Vx, Vy - skip next instruction if Vx != Vy
 void Chip8::op9XY0() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
+    uint8_t Vy = getVy();
 
-    // get Vy
-    uint8_t Vy = (opcode & 0x00F0) >> 4u;
-
-    // check if Vx != Vy
     if (registers[Vx] != registers[Vy]) {
         // skip next instruction
         pc += 2;
@@ -313,38 +264,27 @@ void Chip8::op9XY0() {
 
 // ANNN - LD I, addr - set I to addr
 void Chip8::opANNN() {
-    // get address
-    uint16_t address = opcode & 0x0FFF;
-
-    // set index to address
-    index = address;
+    index = getNNN();
 }
 
 // BNNN - JP V0, addr - set pc to V0 + addr
 void Chip8::opBNNN() {
-    // get address
-    uint16_t address = opcode & 0x0FFF;
-
-    // set pc to V0 + address
+    uint16_t address = getNNN();
     pc = registers[0] + address;
 }
 
 // CXNN - RND Vx, byte - set Vx to random byte AND nn
 void Chip8::opCXNN() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
+    uint8_t NN = getKK();
 
-    // get NN
-    uint8_t NN = opcode & 0x00FF;
-
-    // set Vx to random byte AND NN
-    registers[Vx] = getRandomByte() & NN;
+    registers[Vx] = getRandomByte() & NN; // AND
 }
 
 // DXYN - DRW Vx, Vy, nibble - display n-byte sprite starting at memory location I at (Vx, Vy), set VF to collision
 void Chip8::opDXYN() {
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-    uint8_t Vy = (opcode & 0x00F0) >> 4u;
+    uint8_t Vx = getVx();
+    uint8_t Vy = getVy();
     uint8_t height = opcode & 0x000Fu;
 
     uint8_t xPos = registers[Vx] % VIDEO_WIDTH;
@@ -379,13 +319,9 @@ void Chip8::opDXYN() {
 
 // EX9E - SKP Vx - skip next instruction if key with the value of Vx is pressed
 void Chip8::opEX9E() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // get key
+    uint8_t Vx = getVx();
     uint8_t key = registers[Vx];
 
-    // check if key with the value of Vx is pressed
     if(keypad[key]) {
         // skip next instruction
         pc += 2;
@@ -394,13 +330,9 @@ void Chip8::opEX9E() {
 
 // EXA1 - SKNP Vx - skip next instruction if key with the value of Vx is not pressed
 void Chip8::opEXA1() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // get key
+    uint8_t Vx = getVx();
     uint8_t key = registers[Vx];
 
-    // check if key with the value of Vx is not pressed
     if(!keypad[key]) {
         // skip next instruction
         pc += 2;
@@ -409,36 +341,25 @@ void Chip8::opEXA1() {
 
 // FX07 - LD Vx, DT - set Vx to delay timer value
 void Chip8::opFX07() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // set Vx to delay timer value
+    uint8_t Vx = getVx();
     registers[Vx] = delayTimer;
 }
 
 // FX0A - LD Vx, K - wait for a key press, store the value of the key in Vx
 void Chip8::opFX0A() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
 
     bool keyPressed = false;
 
-    // wait for a key press
+    // loop all keys and check if one is pressed
     for (uint8_t key = 0; key < 16; ++key) {
-        // check if key is pressed
         if (keypad[key]) {
-            // set Vx to key value
             registers[Vx] = key;
-
-            // set flag
             keyPressed = true;
-
-            // break out of loop
             break;
         }
     }
 
-    // check if a key was pressed
     if (!keyPressed) {
         // skip next instruction
         pc -= 2;
@@ -447,49 +368,34 @@ void Chip8::opFX0A() {
 
 // FX15 - LD DT, Vx - set delay timer to Vx
 void Chip8::opFX15() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // set delay timer to Vx
+    uint8_t Vx = getVx();
     delayTimer = registers[Vx];
 }
 
 // FX18 - LD ST, Vx - set sound timer to Vx
 void Chip8::opFX18() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // set sound timer to Vx
+    uint8_t Vx = getVx();
     soundTimer = registers[Vx];
 }
 
 // FX1E - ADD I, Vx - set Index to Index + Vx
 void Chip8::opFX1E() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // set I to I + Vx
+    uint8_t Vx = getVx();
     index += registers[Vx];
 }
 
 // FX29 - LD F, Vx - set I to location of sprite for digit Vx
 void Chip8::opFX29() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // get digit
+    uint8_t Vx = getVx();
     uint8_t digit = registers[Vx];
 
-    // set I to location of sprite for digit Vx
+    // 5 bytes per digit
     index = FONTSET_START_ADDRESS + (digit * 5);
 }
 
 // FX33 - LD B, Vx - store BCD representation of Vx in memory locations I, I+1, and I+2
 void Chip8::opFX33() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
-
-    // get value
+    uint8_t Vx = getVx();
     uint16_t value = registers[Vx];
 
     // ones place
@@ -506,8 +412,7 @@ void Chip8::opFX33() {
 
 // FX55 - LD [I], Vx - store registers V0 through Vx in memory starting at location I
 void Chip8::opFX55() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
 
     // store registers V0 through Vx in memory starting at location I
     for (uint8_t i = 0; i <= Vx; ++i) {
@@ -517,8 +422,7 @@ void Chip8::opFX55() {
 
 // FX65 - LD Vx, [I] - read registers V0 through Vx from memory starting at location I
 void Chip8::opFX65() {
-    // get Vx
-    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vx = getVx();
 
     // read registers V0 through Vx from memory starting at location I
     for (uint8_t i = 0; i <= Vx; ++i) {
@@ -605,4 +509,30 @@ void Chip8::TableE() {
 
 void Chip8::TableF() {
     (this->*(tableF[opcode & 0x00FFu]))();
+}
+
+// ====================
+// helpers
+// ====================
+
+// get random byte
+uint8_t Chip8::getRandomByte() {
+    return static_cast<uint8_t>(rand() % 256);
+}
+
+// get parts of opcode
+uint8_t Chip8::getVx() {
+    return (opcode & 0x0F00) >> 8u;
+}
+
+uint8_t Chip8::getVy() {
+    return (opcode & 0x00F0) >> 4u;
+}
+
+uint8_t Chip8::getKK() {
+    return opcode & 0x00FF;
+}
+
+uint16_t Chip8::getNNN() {
+    return opcode & 0x0FFF;
 }

@@ -91,4 +91,10 @@ private:
     void opFX55();
     void opFX65();
     void opNULL();
+
+    // opcode helpers
+    uint16_t getNNN();
+    uint8_t getKK();
+    uint8_t getVy();
+    uint8_t getVx();
 };
