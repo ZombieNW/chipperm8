@@ -176,6 +176,20 @@ bool Platform::ProcessInput(uint8_t* keys) {
             if (isDown && event.key.keysym.sym == SDLK_r) {
                 this->romNeedsReload = true;
             }
+            if ((SDL_GetModState() & KMOD_CTRL) && event.key.keysym.sym == SDLK_o) {
+                NFD::UniquePath outPath;
+                nfdfilteritem_t filterItem[1] = {{"Chip-8 ROM", "ch8,bin"}};
+
+                nfdresult_t result = NFD::OpenDialog(outPath, filterItem, 1);
+
+                if (result == NFD_OKAY) {
+                    this->currentRomPath = outPath.get();
+                    this->romNeedsReload = true;
+                } else {
+                    std::cerr << "Error: " << NFD::GetError() << std::endl;
+                } 
+            }
+            
 
 
             // only send keys to emulator if imgui isn't using them
