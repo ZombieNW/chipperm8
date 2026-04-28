@@ -15,6 +15,7 @@ Platform::Platform(char const* title, int windowWidth, int windowHeight) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
