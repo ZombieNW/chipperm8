@@ -1,5 +1,4 @@
 #include <chrono>
-#include <iostream>
 #include <string>
 #include "platform.hpp"
 #include "chip8.hpp"
@@ -28,7 +27,7 @@ int main(int argc, char** argv) {
 
         // check if ui asked to reload
         if (platform.romNeedsReload) {
-            chip8.reset(); 
+            chip8.reset();
 
             if (chip8.loadROM(platform.currentRomPath.c_str())) {
                 platform.romLoaded = true;

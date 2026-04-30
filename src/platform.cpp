@@ -1,6 +1,11 @@
+#include <iostream>
+#include <vector>
 #include "platform.hpp"
 #include "chip8.hpp"
 #include "nfd.hpp"
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
 
 Platform::Platform(char const* title, int windowWidth, int windowHeight) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO);
@@ -63,10 +68,10 @@ void Platform::Update(void const* buffer, int pitch) {
     // remove padding
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
-    ImGui::Begin("EMU", nullptr, 
-    ImGuiWindowFlags_NoDecoration | 
-    ImGuiWindowFlags_NoMove | 
-    ImGuiWindowFlags_NoBringToFrontOnFocus | 
+    ImGui::Begin("EMU", nullptr,
+    ImGuiWindowFlags_NoDecoration |
+    ImGuiWindowFlags_NoMove |
+    ImGuiWindowFlags_NoBringToFrontOnFocus |
     ImGuiWindowFlags_NoInputs);
 
     ImVec2 winSize = ImGui::GetContentRegionAvail();
@@ -108,7 +113,7 @@ void Platform::Update(void const* buffer, int pitch) {
 
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
-    
+
     SDL_RenderPresent(renderer);
 }
 
@@ -126,7 +131,7 @@ void Platform::RenderUI() {
                     this->romNeedsReload = true;
                 } else {
                     std::cerr << "Error: " << NFD::GetError() << std::endl;
-                } 
+                }
             }
 
             if (ImGui::MenuItem("Quit", "esc")) {
@@ -155,7 +160,7 @@ void Platform::RenderUI() {
                 }
                 ImGui::EndMenu();
             }
-            
+
             ImGui::EndMenu();
         }
 
@@ -172,14 +177,14 @@ void Platform::RenderUI() {
 
 void Platform::UpdateSound(uint8_t soundTimer) {
     if (soundTimer > 0) {
-        int samplesToQueue = 44100 / 60; 
+        int samplesToQueue = 44100 / 60;
         std::vector<int16_t> samples(samplesToQueue);
 
         for (int i = 0; i < samplesToQueue; ++i) {
             // 440Hz square wave
             samples[i] = ((waveStep++ / (44100 / 440 / 2)) % 2) ? 3000 : -3000;
         }
-        
+
         // only queue if the buffer is getting low to avoid latency
         if (SDL_GetQueuedAudioSize(audioDevice) < samplesToQueue * sizeof(int16_t) * 2) {
             SDL_QueueAudio(audioDevice, samples.data(), samples.size() * sizeof(int16_t));
@@ -198,10 +203,10 @@ bool Platform::ProcessInput(uint8_t* keys) {
         ImGui_ImplSDL2_ProcessEvent(&event);
 
         if (event.type == SDL_QUIT) quit = true;
-        
+
         if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
             bool isDown = (event.type == SDL_KEYDOWN);
-            
+
             // always quit on escape
             if (isDown && event.key.keysym.sym == SDLK_ESCAPE) quit = true;
             // pause
@@ -222,9 +227,9 @@ bool Platform::ProcessInput(uint8_t* keys) {
                     this->romNeedsReload = true;
                 } else {
                     std::cerr << "Error: " << NFD::GetError() << std::endl;
-                } 
+                }
             }
-            
+
 
 
             // only send keys to emulator if imgui isn't using them

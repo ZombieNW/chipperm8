@@ -1,12 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <fstream>
-#include <chrono>
-#include <random>
-#include <ctime>
-#include <cstdlib>
-#include <iostream>
 
 // constants
 const unsigned int START_ADDRESS = 0x200; // first 512 bytes reserved for interpreter
@@ -38,7 +32,7 @@ public:
 private:
     // instruction decoding function pointer type
     typedef void (Chip8::*Chip8Func)();
-    
+
     // instruction tables
     Chip8Func table[0xF + 1];
     Chip8Func table0[0xE + 1];

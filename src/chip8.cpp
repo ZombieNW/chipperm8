@@ -1,4 +1,8 @@
 #include "chip8.hpp"
+#include <fstream>
+#include <ctime>
+#include <cstdlib>
+#include <iostream>
 
 // initialize
 void Chip8::reset() {
@@ -14,7 +18,7 @@ void Chip8::reset() {
     std::fill(std::begin(stack), std::end(stack), 0);
     std::fill(std::begin(video), std::end(video), 0);
     std::fill(std::begin(keypad), std::end(keypad), 0);
-    
+
     // clear memory
     std::fill(std::begin(memory), std::end(memory), 0);
 
@@ -293,7 +297,7 @@ void Chip8::opDXYN() {
     uint8_t yPos = registers[Vy] % VIDEO_HEIGHT;
 
     // clear collision
-    registers[0xF] = 0; 
+    registers[0xF] = 0;
 
     for (unsigned int row = 0; row < height; ++row) {
         // break if out of bounds
