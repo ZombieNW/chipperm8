@@ -1,5 +1,6 @@
 #include <chrono>
 #include <string>
+#include <iostream>
 #include "platform.hpp"
 #include "chip8.hpp"
 
@@ -21,6 +22,15 @@ int main(int argc, char** argv) {
     int videoPitch = sizeof(chip8.video[0]) * VIDEO_WIDTH;
     auto lastCycleTime = std::chrono::high_resolution_clock::now();
     bool quit = false;
+
+    // log initial setup information
+    std::cout << "Chipper-M8 initialized with resolution: " << 1280 << "x" << 720 << std::endl;
+    if (argc >= 2) {
+        std::cout << "Loading ROM from path: " << platform.currentRomPath << std::endl;
+    }
+    if (argc >= 3) {
+        std::cout << "Cycle delay set to: " << platform.cycleDelay << " ms" << std::endl;
+    }
 
     while (!quit) {
         quit = platform.ProcessInput(chip8.keypad);
