@@ -17,6 +17,10 @@ int main(int argc, char** argv) {
     }
     if (argc >= 3) {
         platform.cycleDelay = std::stoi(argv[2]);
+        // healthy fallback
+        if (platform.cycleDelay <= 0) {
+            platform.cycleDelay = 0;
+        }
     }
 
     int videoPitch = sizeof(chip8.video[0]) * VIDEO_WIDTH;
